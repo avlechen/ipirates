@@ -19,7 +19,7 @@ def pretty_req(req):
 def test_get_article_by_hash():
     req = requests.Request(
         method='GET',
-        url='http://0.0.0.0:5000/article/QmYQCPRgyFiH2AweHFg9MVUjhA9av1oe1w3EMrui6Ri4bi')
+        url='http://0.0.0.0:5000/article/QmWd9cavD8UGZQcqYBVhZqs2Jure5W9cgxR7S6TC4StfZe')
     prepared = req.prepare()
     print("Request:  " + pretty_req(prepared))
 
