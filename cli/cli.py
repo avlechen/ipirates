@@ -1,9 +1,9 @@
-#!/usr/local/bin/python3
-
 import click
+import os
 import sys
 import json
 import requests
+from requests_toolbelt import MultipartEncoder
 
 from colorama import init
 from termcolor import cprint 
@@ -23,20 +23,28 @@ def cli():
 @click.command()
 @click.option('--authors', type=str, help='authors name list as CSV string')
 @click.option('--title', type=str, help='title of an article')
-@click.option('--tags', type=str, help='list of tags as CSV string')
-@click.option('--file', type=str, help='article file')
-def add(authors, title, tags, file):
+@click.option('--keywords', type=str, help='list of keywords as CSV string')
+@click.option('--doi', type=str, help='DOI - Digital Object Identifier')
+@click.argument('filename', type=click.Path(exists=True))
+def add(filename, authors, title, keywords, doi):
     """upload an article"""
-    if not file:
-        click.echo('Please provide file location to upload.\nSee [COMMAND --help] for more information')
-    elif not authors or not title or not tags:
+    if not authors or not title or not keywords or not doi:
         click.echo('Please provide all the necessary metadate.\nSee "[COMMAND] --help" for more inforemtion.')
     else:
         data = {}
         data['authors'] = authors.split(',')
-        data['tags'] = tags.split(',')
+        data['keywords'] = keywords.split(',')
         data['title'] = title
-        click.echo(data)
+        data['doi'] = doi
+        filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
+        body = MultipartEncoder(
+            fields={
+                'metadata': str(data).replace("'", "\""),
+                'file': (os.path.basename(filename), open(filepath, 'rb'))
+            }
+        )
+        res = requests.post('http://0.0.0.0:5000/article', data=body, headers={'Content-Type': body.content_type})
+        click.echo(res.content)
 
 @click.command()
 @click.option('--hash', type=str, help='hash of the stored file')
@@ -45,15 +53,17 @@ def get(hash):
     if not hash:
         click.echo('Please provide a hash to look for.\nSee [COMMAND] --help for more information.')
     else:
-        click.echo(hash)
+        res = requests.get('http://0.0.0.0:5000/article/' + hash)
+        click.echo(res.content)
 
 @click.command()
 @click.option('--authors', type=str, help='authors name list as CSV string')
 @click.option('--title', type=str, help='title of an article')
-@click.option('--tags', type=str, help='list of tags as CSV string')
-def find(authors, title, tags):
+@click.option('--keywords', type=str, help='list of keywords as CSV string')
+@click.option('--doi', type=str, help='DOI - Digital Object Identifier')
+def find(authors, title, keywords, doi):
     """find an article"""
-    if not authors and not title and not tags:
+    if not authors and not title and not keywords and not doi:
         click.echo('Please provide any search information.\nSee "[COMMAND] --help" for more information.')
     else:
         data = {}
@@ -61,9 +71,12 @@ def find(authors, title, tags):
             data['authors'] = authors.split(',')
         if title:
             data['title'] = title
-        if tags:
-            data['tags'] = tags.split(',')
-        click.echo(data)
+        if keywords:
+            data['keywords'] = keywords.split(',')
+        if doi:
+            data['doi'] = doi
+        res = requests.post('http://0.0.0.0:5000/article/find', json=data)
+        click.echo(res.content)
 
 cli.add_command(add)
 cli.add_command(get)

@@ -1,11 +1,17 @@
 import zlib
-import json
-
 
 class Index(object):
     def __init__(self, key, api):
         self._key = key
         self._api = api
+
+
+def find_index(links, key):
+    for link in links:
+        if link['Name'] == key:
+            return link['Hash']
+
+    return None
 
 
 class Trie(Index):
@@ -27,7 +33,10 @@ class Trie(Index):
         return root
 
     def update_index(self, multihash, metadata, root_links):
-        root_link = root_links[self._key]
+        if self._key not in metadata:
+            return find_index(root_links, self._key)
+
+        root_link = find_index(root_links, self._key)
 
         keys = metadata[self._key] if type(metadata[self._key]) is list else [metadata[self._key], ]
         trie = self.make_trie(keys)
@@ -35,10 +44,14 @@ class Trie(Index):
 
     def _update(self, link, trie, multihash):
         # can be switched to dag-objects
-        index = dict() if link is None else json.loads(self._api.cat(link))
+        index = dict() if link is None else self._api.get_json(link)
         for key in trie:
             if key == self.END:
+                if 'links' not in index:
+                    index['links'] = list()
                 index['links'].append(multihash)
+                continue
+
             next_link = None if key not in index else index[key]
             index[key] = self._update(next_link, trie[key], multihash)
 
@@ -47,8 +60,8 @@ class Trie(Index):
         return hash_path
 
     def search(self, query, links):
-        root_link = links[self._key]
-        index = json.loads(self._api.cat(root_link))
+        root_link = find_index(links, self._key)
+        index = self._api.get_json(root_link)
 
         keys = query[self._key] if type(query[self._key]) is list else [query[self._key], ]
         len_2_key_map = dict(map(lambda k: (len(k), k), keys))
@@ -58,10 +71,12 @@ class Trie(Index):
         for letter in key:
             if letter in index:
                 link = index[letter]
-                index = json.loads(self._api.cat(link))
+                index = self._api.get_json(link)
 
-        if root_link != link:
-            return index['links'] if 'links' in index else []
+        if root_link != link and 'links' in index:
+            return list(map(lambda val: self._api.get_json(val), index['links']))
+        else:
+            return list()
 
 
 class HashTableIndex(Index):
@@ -70,24 +85,33 @@ class HashTableIndex(Index):
         self._buckets = buckets
 
     def get_bucket(self, value):
-        return zlib.crc32(value) % self._buckets
+        if type(value) is str:
+            value = value.encode()
+        return str(zlib.crc32(value) % self._buckets)
 
     def update_index(self, multihash, metadata, root_links):
-        root_link = root_links[self._key]
-        root_index = json.loads(self._api.cat(root_link))
+        if self._key not in metadata:
+            return find_index(root_links, self._key)
+
+        root_link = find_index(root_links, self._key)
+        root_index = self._api.get_json(root_link) if root_link is not None else dict()
 
         keys = metadata[self._key] if type(metadata[self._key]) is list else [metadata[self._key], ]
 
-        buckets = map(self.get_bucket, keys)
+        buckets = map(lambda k: (k, self.get_bucket(k)), keys)
 
-        for bucket in buckets:
+        for key, bucket in buckets:
             if bucket in root_index:
                 bucket_link = root_index[bucket]
-                bucket_index = json.loads(self._api.cat(bucket_link))
+                bucket_index = self._api.get_json(bucket_link)
             else:
                 bucket_index = dict()
 
-            bucket_index[metadata[self._key]] = multihash
+            if key not in bucket_index:
+                bucket_index[key] = dict(links=list())
+            elif 'links' not in bucket_index[key]:
+                bucket_index[key]['links'] = list()
+            bucket_index[key]['links'].append(multihash)
             bucket_link = self._api.add_json(bucket_index)
 
             root_index[bucket] = bucket_link
@@ -95,16 +119,20 @@ class HashTableIndex(Index):
         return self._api.add_json(root_index)
 
     def search(self, query, links):
-        root_link = links[self._key]
-        root_index = json.loads(self._api.cat(root_link))
+        root_link = find_index(links, self._key)
+        root_index = self._api.get_json(root_link) if root_link is not None else dict()
 
         key = query[self._key] if type(query[self._key]) is not list else query[self._key][0]
 
         bucket = self.get_bucket(key)
-        bucket_link = root_index[bucket]
-        bucket_index = json.loads(self._api.cat(bucket_link))
+        if bucket not in root_index:
+            return list()
 
-        return list(bucket_index.values)
+        bucket_link = root_index[bucket]
+        bucket_index = self._api.get_json(bucket_link)
+
+        links = bucket_index[key]['links']
+        return list(map(lambda val: self._api.get_json(val), links))
 
 
 class MultiIndex(object):
@@ -120,34 +148,40 @@ class MultiIndex(object):
     def update_index(self, multihash, metadata):
         root = self.api.object_get(self.root_holder.get())
 
-        root['Links'] = []
+        new_links = []
         for key, index in self.indices.items():
-            root['Links'].append(dict(
-                Hash=index.update_index(multihash, metadata, root['Links']),
-                Name=key
-            ))
+            index_hash = index.update_index(multihash, metadata, root['Links'])
+            if index_hash is not None:
+                new_links.append(dict(Hash=index_hash, Name=key))
 
-        root_multihash = self.api.object_put()
-        self.api.pin_add(root_multihash)
-        self.root_holder.post(root_multihash)
+        root['Links'] = new_links
+        self.root_holder.post(root)
 
     def search(self, query):
         links = self.api.object_get(self.root_holder.get())['Links']
 
-        selection = []
-        search_priority = ['doi', 'author', 'keyword']
-        for key in search_priority:
+        metadata_collection = []
+        for key in ['doi', 'author', 'keywords']:
             if key in query:
-                selection = self.indices[key].search(query, links)
-            del query[key]
+                ret = self.indices[key].search(query, links)
+                if type(ret) is list:
+                    metadata_collection += ret
+                else:
+                    metadata_collection.append(ret)
 
-        return filter(lambda it: self.satisfies(it, query), selection)
+                del query[key]
+                return list(filter(lambda it: self.satisfies(it, query), metadata_collection))
 
     @staticmethod
     def satisfies(item, query):
-        unpacked = json.loads(item)
         for key in query:
-            if query[key] not in unpacked[key]:
+
+            def to_set(collection):
+                return set(collection if type(collection) is list else [collection,])
+
+            q = to_set(query[key])
+            i = to_set(item[key])
+            if not q.issubset(i):
                 return False
 
         return True
