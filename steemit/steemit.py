@@ -12,7 +12,7 @@ import time
 platform_url = 'steemit.com'
 url_tag = 'ipfs'
 profile_name = 'magnustest'
-post_link = 'blockchain-hackathon-ipfs-hashes'
+post_link = 'hackathon-ipfs-hashes'
 
 # account keys
 prv_posting_key = '5KXSnDWzHzgopzpYuNBecTMdvrwzBTZNDi5xY24CLUsdzfQj8L4'
@@ -52,7 +52,7 @@ def send_new_hash_comment(new_hash, prev_hash=None):
 
 # Return body string with hashes data
 def body_string(new_hash, prev_hash=None):
-    prev_hash = prev_hash or get_last_hash_comment()
+    prev_hash = prev_hash or get_last_hash_comment() or 'nothing'
 
     body = 'previous hash: {}\nnew hash: {}'.format(prev_hash, new_hash)
     return body

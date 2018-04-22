@@ -6,12 +6,12 @@ from werkzeug.utils import secure_filename
 
 from pirate_client.multi_index import MultiIndex
 from pirate_client.paper_client import PaperClient
-from pirate_client.root_holder import DebugRootHolder
+from pirate_client.root_holder import SteemitRootHolder
 
 app = Flask(__name__)
 
 api = ipfsapi.connect('127.0.0.1', 5001)
-index = MultiIndex(api, DebugRootHolder(api))
+index = MultiIndex(api, SteemitRootHolder(api))
 paper_client = PaperClient(api, index)
 
 
