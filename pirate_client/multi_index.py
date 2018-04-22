@@ -4,8 +4,8 @@ import json
 
 class Index(object):
     def __init__(self, key, api):
-        self.key = key
-        self.api = api
+        self._key = key
+        self._api = api
 
 
 class Trie(Index):
@@ -27,30 +27,30 @@ class Trie(Index):
         return root
 
     def update_index(self, multihash, metadata, root_links):
-        root_link = root_links[self.key]
+        root_link = root_links[self._key]
 
-        keys = metadata[self.key] if type(metadata[self.key]) is list else [metadata[self.key], ]
+        keys = metadata[self._key] if type(metadata[self._key]) is list else [metadata[self._key], ]
         trie = self.make_trie(keys)
         return self._update(root_link, trie, multihash)
 
     def _update(self, link, trie, multihash):
         # can be switched to dag-objects
-        index = dict() if link is None else json.loads(self.api.cat(link))
+        index = dict() if link is None else json.loads(self._api.cat(link))
         for key in trie:
             if key == self.END:
                 index['links'].append(multihash)
             next_link = None if key not in index else index[key]
             index[key] = self._update(next_link, trie[key], multihash)
 
-        hash_path = self.api.add_json(index)
-        self.api.pin_add(hash_path)
+        hash_path = self._api.add_json(index)
+        self._api.pin_add(hash_path)
         return hash_path
 
     def search(self, query, links):
-        root_link = links[self.key]
-        index = json.loads(self.api.cat(root_link))
+        root_link = links[self._key]
+        index = json.loads(self._api.cat(root_link))
 
-        keys = query[self.key] if type(query[self.key]) is list else [query[self.key], ]
+        keys = query[self._key] if type(query[self._key]) is list else [query[self._key], ]
         len_2_key_map = dict(map(lambda k: (len(k), k), keys))
         key = len_2_key_map[min(len_2_key_map.keys())]
 
@@ -58,7 +58,7 @@ class Trie(Index):
         for letter in key:
             if letter in index:
                 link = index[letter]
-                index = json.loads(self.api.cat(link))
+                index = json.loads(self._api.cat(link))
 
         if root_link != link:
             return index['links'] if 'links' in index else []
@@ -67,42 +67,42 @@ class Trie(Index):
 class HashTableIndex(Index):
     def __init__(self, key, api, buckets=100000):
         super().__init__(key, api)
-        self.buckets = buckets
+        self._buckets = buckets
 
     def get_bucket(self, value):
-        return zlib.crc32(value) % self.buckets
+        return zlib.crc32(value) % self._buckets
 
     def update_index(self, multihash, metadata, root_links):
-        root_link = root_links[self.key]
-        root_index = json.loads(self.api.cat(root_link))
+        root_link = root_links[self._key]
+        root_index = json.loads(self._api.cat(root_link))
 
-        keys = metadata[self.key] if type(metadata[self.key]) is list else [metadata[self.key], ]
+        keys = metadata[self._key] if type(metadata[self._key]) is list else [metadata[self._key], ]
 
         buckets = map(self.get_bucket, keys)
 
         for bucket in buckets:
             if bucket in root_index:
                 bucket_link = root_index[bucket]
-                bucket_index = json.loads(self.api.cat(bucket_link))
+                bucket_index = json.loads(self._api.cat(bucket_link))
             else:
                 bucket_index = dict()
 
-            bucket_index[metadata[self.key]] = multihash
-            bucket_link = self.api.add_json(bucket_index)
+            bucket_index[metadata[self._key]] = multihash
+            bucket_link = self._api.add_json(bucket_index)
 
             root_index[bucket] = bucket_link
 
-        return self.api.add_json(root_index)
+        return self._api.add_json(root_index)
 
     def search(self, query, links):
-        root_link = links[self.key]
-        root_index = json.loads(self.api.cat(root_link))
+        root_link = links[self._key]
+        root_index = json.loads(self._api.cat(root_link))
 
-        key = query[self.key] if type(query[self.key]) is not list else query[self.key][0]
+        key = query[self._key] if type(query[self._key]) is not list else query[self._key][0]
 
         bucket = self.get_bucket(key)
         bucket_link = root_index[bucket]
-        bucket_index = json.loads(self.api.cat(bucket_link))
+        bucket_index = json.loads(self._api.cat(bucket_link))
 
         return list(bucket_index.values)
 
