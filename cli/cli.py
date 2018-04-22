@@ -9,6 +9,9 @@ from colorama import init
 from termcolor import cprint 
 from pyfiglet import figlet_format
 
+#article dict mock
+test_article = {'authors': ['Will Kurt', 'John A De Goes'], 'title': 'Smart Article', 'keywords': ['smart', 'article'], 'doi': '777', 'link': 'http://somelink'}
+
 init(strip=not sys.stdout.isatty()) # strip colors if stdout is redirected
 
 #this thins prints ascii-art-style header only in case of root '--help'
@@ -48,7 +51,11 @@ def add(filename, authors, title, keywords, doi, local):
                 }
             )
             res = requests.post('http://0.0.0.0:5000/article', data=body, headers={'Content-Type': body.content_type})
-            click.echo(res.content)
+            content = json.loads(res.text)
+            content['article'] = test_article
+            click.echo(content['message'])
+            if 'article' in content:
+                click.echo(format_article(content['article']))
 
 @click.command()
 @click.option('--hash', type=str, help='hash of the stored file')
@@ -62,7 +69,8 @@ def get(hash, local):
             pass
         else:
             res = requests.get('http://0.0.0.0:5000/article/' + hash)
-            click.echo(res.content)
+            content = json.loads(res.text)
+            click.echo('%s: %s' % (content['message'], content['link']))
 
 @click.command()
 @click.option('--authors', type=str, help='authors name list as CSV string')
@@ -96,7 +104,8 @@ def format_article(article_dict):
     title = 'Title: ' + article_dict['title']
     keywords = 'Keywords: ' + ' ,'.join(article_dict['keywords'])
     doi = 'DOI: ' + article_dict['doi']
-    return '\n'.join([authors, title, keywords, doi])
+    link = 'Download link: ' + article_dict['link']
+    return '\n'.join([authors, title, keywords, doi, link])
 
 
 cli.add_command(add)
