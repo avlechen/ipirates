@@ -1,16 +1,22 @@
 import os
 
+import ipfsapi
 from flask import Flask, request, json, jsonify, url_for
 from werkzeug.utils import secure_filename
 
+from pirate_client.multi_index import MultiIndex
 from pirate_client.paper_client import PaperClient
+from pirate_client.root_holder import DebugRootHolder
 
 app = Flask(__name__)
-paper_client = PaperClient()
+
+api = ipfsapi.connect('127.0.0.1', 5001)
+index = MultiIndex(api, DebugRootHolder(api))
+paper_client = PaperClient(api, index)
 
 
 @app.route("/article/<string:article_hash>", methods=['GET'])
-def get_article(article_hash):  # TODO: add IPFS calls?
+def get_article(article_hash):
     ipfs_prefix = 'https://ipfs.io/ipfs/'
     # TODO: add validation (check article exists) or even return the article itself
     return jsonify(
@@ -40,6 +46,10 @@ def add_article():
 
     if metadata_dict.get('keywords'):
         print('Keywords: ' + ", ".join(metadata_dict.get('keywords')))
+
+    res = paper_client.add_file(file=file, metadata=metadata)
+    print("Result: ")
+    print(res)
 
     return jsonify({"message": "Article inserted! (no)"})
 
