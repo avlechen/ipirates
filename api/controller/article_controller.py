@@ -23,20 +23,20 @@ def add_article():
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     metadata = request.form.get('metadata')
     print('metadata string: ' + metadata)
-    dict = json.loads(metadata)
-    print('metadata dict: ' + str(dict))
+    metadata_dict = json.loads(metadata)
+    print('metadata metadata_dict: ' + str(metadata_dict))
 
-    if dict.get('doi'):
-        print('DOI: ' + dict.get('doi'))
+    if metadata_dict.get('doi'):
+        print('DOI: ' + metadata_dict.get('doi'))
 
-    if dict.get('title'):
-        print('Title: ' + dict.get('title'))
+    if metadata_dict.get('title'):
+        print('Title: ' + metadata_dict.get('title'))
 
-    if dict.get('authors'):
-        print('Authors: ' + ", ".join(dict.get('authors')))
+    if metadata_dict.get('authors'):
+        print('Authors: ' + ", ".join(metadata_dict.get('authors')))
 
-    if dict.get('tags'):
-        print('Tags: ' + ", ".join(dict.get('tags')))
+    if metadata_dict.get('tags'):
+        print('Tags: ' + ", ".join(metadata_dict.get('tags')))
 
     return jsonify({"message": "Article inserted! (no)"})
 
