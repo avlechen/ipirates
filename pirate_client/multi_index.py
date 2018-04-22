@@ -1,5 +1,6 @@
 import zlib
 
+
 class Index(object):
     def __init__(self, key, api):
         self._key = key
@@ -147,6 +148,8 @@ class MultiIndex(object):
 
     def update_index(self, multihash, metadata):
         root = self.api.object_get(self.root_holder.get())
+        if 'Links' not in root:
+            root['Links'] = list()
 
         new_links = []
         for key, index in self.indices.items():
@@ -158,7 +161,10 @@ class MultiIndex(object):
         self.root_holder.post(root)
 
     def search(self, query):
-        links = self.api.object_get(self.root_holder.get())['Links']
+        root_object = self.api.object_get(self.root_holder.get())
+        if 'Links' not in root_object:
+            return None
+        links = root_object['Links']
 
         metadata_collection = []
         for key in ['doi', 'author', 'keywords']:
@@ -171,6 +177,8 @@ class MultiIndex(object):
 
                 del query[key]
                 return list(filter(lambda it: self.satisfies(it, query), metadata_collection))
+
+        return None
 
     @staticmethod
     def satisfies(item, query):
