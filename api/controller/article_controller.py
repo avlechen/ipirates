@@ -7,10 +7,12 @@ app = Flask(__name__)
 
 
 @app.route("/article/<string:article_hash>", methods=['GET'])
-def get_article(article_hash):  # TODO: add IPFS calls
+def get_article(article_hash):  # TODO: add IPFS calls?
+    ipfs_prefix = 'https://ipfs.io/ipfs/'
+    # TODO: add validation (check article exists) or even return the article itself
     return jsonify(
         {"message": "Here's your article",
-         "article_hash": article_hash})
+         "link": "{}{}".format(ipfs_prefix, article_hash)})
 
 
 @app.route("/article", methods=['POST'])
@@ -33,7 +35,7 @@ def add_article():
     if dict.get('tags'):
         print('Tags: ' + ", ".join(dict.get('tags')))
 
-    return jsonify({"msg": "Article inserted! (no)"})
+    return jsonify({"message": "Article inserted! (no)"})
 
 
 # TODO: add search criteria/metadata model
@@ -49,7 +51,6 @@ def find_articles():
 @app.errorhandler(400)
 def bad_request(error=None):
     message = {
-        'status': 400,
         'message': 'Bad request',
         'reason': str(error)
     }
