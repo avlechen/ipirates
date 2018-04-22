@@ -36,9 +36,7 @@ def add(filename, authors, title, keywords, doi):
         data['keywords'] = keywords.split(',')
         data['title'] = title
         data['doi'] = doi
-        click.echo(data)
         filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
-        click.echo(filepath)
         body = MultipartEncoder(
             fields={
                 'metadata': str(data).replace("'", "\""),
@@ -55,7 +53,6 @@ def get(hash):
     if not hash:
         click.echo('Please provide a hash to look for.\nSee [COMMAND] --help for more information.')
     else:
-        click.echo(hash)
         res = requests.get('http://0.0.0.0:5000/article/' + hash)
         click.echo(res.content)
 
@@ -78,7 +75,6 @@ def find(authors, title, keywords, doi):
             data['keywords'] = keywords.split(',')
         if doi:
             data['doi'] = doi
-        click.echo(data)
         res = requests.post('http://0.0.0.0:5000/article/find', json=data)
         click.echo(res.content)
 
