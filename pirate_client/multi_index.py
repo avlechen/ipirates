@@ -175,7 +175,13 @@ class MultiIndex(object):
     @staticmethod
     def satisfies(item, query):
         for key in query:
-            if query[key] not in item[key]:
+
+            def to_set(collection):
+                return set(collection if type(collection) is list else [collection,])
+
+            q = to_set(query[key])
+            i = to_set(item[key])
+            if not q.issubset(i):
                 return False
 
         return True
