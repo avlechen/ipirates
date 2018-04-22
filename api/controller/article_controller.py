@@ -26,6 +26,9 @@ def add_article():
     dict = json.loads(metadata)
     print('metadata dict: ' + str(dict))
 
+    if dict.get('doi'):
+        print('DOI: ' + dict.get('doi'))
+
     if dict.get('title'):
         print('Title: ' + dict.get('title'))
 

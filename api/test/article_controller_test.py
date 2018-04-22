@@ -37,6 +37,7 @@ def test_add_article_file_with_metadata():
     m = MultipartEncoder(
         fields={
             'metadata': str({
+                "doi": "10.1000/xyz123",
                 "title": "Structured computer organization",
                 "authors": ["Andrew S. Tanenbaum", "Todd Austin"],
                 "tags": ["hardware", "bible", "bsuir"]
