@@ -42,7 +42,9 @@ class Trie(Index):
             next_link = None if key not in index else index[key]
             index[key] = self._update(next_link, trie[key], multihash)
 
-        return self.api.add_json(index)
+        hash_path = self.api.add_json(index)
+        self.api.pin_add(hash_path)
+        return hash_path
 
     def search(self, query, links):
         root_link = links[self.key]
@@ -126,7 +128,8 @@ class MultiIndex(object):
             ))
 
         root_multihash = self.api.object_put()
-        self.root_holder.put(root_multihash)
+        self.api.pin_add(root_multihash)
+        self.root_holder.post(root_multihash)
 
     def search(self, query):
         links = self.api.object_get(self.root_holder.get())['Links']
