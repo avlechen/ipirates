@@ -5,3 +5,4 @@ ipfsapi==0.4.2.post1
 requests==2.18.4
 six==1.11.0
 urllib3==1.22
+steem==1.0.0

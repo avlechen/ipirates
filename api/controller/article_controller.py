@@ -7,10 +7,12 @@ app = Flask(__name__)
 
 
 @app.route("/article/<string:article_hash>", methods=['GET'])
-def get_article(article_hash):  # TODO: add IPFS calls
+def get_article(article_hash):  # TODO: add IPFS calls?
+    ipfs_prefix = 'https://ipfs.io/ipfs/'
+    # TODO: add validation (check article exists) or even return the article itself
     return jsonify(
         {"message": "Here's your article",
-         "article_hash": article_hash})
+         "link": "{}{}".format(ipfs_prefix, article_hash)})
 
 
 @app.route("/article", methods=['POST'])
@@ -21,19 +23,22 @@ def add_article():
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
     metadata = request.form.get('metadata')
     print('metadata string: ' + metadata)
-    dict = json.loads(metadata)
-    print('metadata dict: ' + str(dict))
+    metadata_dict = json.loads(metadata)
+    print('metadata metadata_dict: ' + str(metadata_dict))
 
-    if dict.get('title'):
-        print('Title: ' + dict.get('title'))
+    if metadata_dict.get('doi'):
+        print('DOI: ' + metadata_dict.get('doi'))
 
-    if dict.get('authors'):
-        print('Authors: ' + ", ".join(dict.get('authors')))
+    if metadata_dict.get('title'):
+        print('Title: ' + metadata_dict.get('title'))
 
-    if dict.get('tags'):
-        print('Tags: ' + ", ".join(dict.get('tags')))
+    if metadata_dict.get('authors'):
+        print('Authors: ' + ", ".join(metadata_dict.get('authors')))
 
-    return jsonify({"msg": "Article inserted! (no)"})
+    if metadata_dict.get('tags'):
+        print('Tags: ' + ", ".join(metadata_dict.get('tags')))
+
+    return jsonify({"message": "Article inserted! (no)"})
 
 
 # TODO: add search criteria/metadata model
@@ -49,7 +54,6 @@ def find_articles():
 @app.errorhandler(400)
 def bad_request(error=None):
     message = {
-        'status': 400,
         'message': 'Bad request',
         'reason': str(error)
     }
