@@ -19,7 +19,20 @@ def add_article():
     if file:
         filename = secure_filename(file.filename)
         file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-    # TODO: change request to include metadata
+    metadata = request.form.get('metadata')
+    print('metadata string: ' + metadata)
+    dict = json.loads(metadata)
+    print('metadata dict: ' + str(dict))
+
+    if dict.get('title'):
+        print('Title: ' + dict.get('title'))
+
+    if dict.get('authors'):
+        print('Authors: ' + ", ".join(dict.get('authors')))
+
+    if dict.get('tags'):
+        print('Tags: ' + ", ".join(dict.get('tags')))
+
     return jsonify({"msg": "Article inserted! (no)"})
 
 
