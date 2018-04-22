@@ -47,11 +47,28 @@ def add_article():
 # TODO: add search criteria/metadata model
 @app.route("/article/find", methods=['POST'])
 def find_articles():
-    if request.headers['Content-Type'] == 'application/json':
-        print("JSON Message: " + json.dumps(request.json))
-        return jsonify({"message": "Here's what we found for your request"})
-    else:
-        return url_for(bad_request)
+    print("============ FIND ==============")
+    print(request.json)
+    print("Received JSON Message: " + str(request.json))
+    query_dict = request.json
+
+    if query_dict.get('doi'):
+        print('DOI: ' + query_dict.get('doi'))
+
+    if query_dict.get('title'):
+        print('Title: ' + query_dict.get('title'))
+
+    if query_dict.get('authors'):
+        print('Authors: ' + ", ".join(query_dict.get('authors')))
+
+    if query_dict.get('keywords'):
+        print('Keywords: ' + ", ".join(query_dict.get('keywords')))
+
+    res = paper_client.find_file(query=query_dict)
+    print("Result: ")
+    print(res)
+
+    return jsonify({"message": "Here's what we found for your request"})
 
 
 @app.errorhandler(400)
