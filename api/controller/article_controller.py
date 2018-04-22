@@ -52,7 +52,7 @@ def add_article():
     print("Result: ")
     print(res)
 
-    return jsonify({"message": "Article inserted! (no)"})
+    return jsonify({"message": "Article inserted! (no)", "metadata": res})
 
 
 # TODO: add search criteria/metadata model

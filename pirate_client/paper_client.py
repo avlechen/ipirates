@@ -37,6 +37,8 @@ class PaperClient(object):
         if is_tmp:
             Path(file).unlink()
 
+        return metadata
+
     def find_file(self, query):
         metadatas = self.index.search(query)
         for metadata in metadatas:
