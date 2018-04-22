@@ -9,7 +9,7 @@ from pathlib import Path
 # one big test, because fuck it, don't have time for this shit
 def test():
     api = ipfsapi.connect('127.0.0.1', 5001)
-    index = MultiIndex(api, DebugRootHolder())
+    index = MultiIndex(api, DebugRootHolder(api))
     client = PaperClient(api, index)
 
     test_dir = Path(__file__).parent
@@ -48,3 +48,7 @@ def test():
     for fwm in files_with_meta:
         file = client.find_file(query=fwm[1])
         client.get_file(file['file_hash'], fwm[0] + '.ponged')
+
+
+if __name__ == "__main__":
+    test()

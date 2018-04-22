@@ -1,11 +1,19 @@
 import zlib
 import json
-
+from io import BytesIO
 
 class Index(object):
     def __init__(self, key, api):
         self._key = key
         self._api = api
+
+
+def find_index(links, key):
+    for link in links:
+        if link['Name'] == key:
+            return link['Hash']
+
+    return None
 
 
 class Trie(Index):
@@ -27,7 +35,7 @@ class Trie(Index):
         return root
 
     def update_index(self, multihash, metadata, root_links):
-        root_link = root_links[self._key]
+        root_link = find_index(root_links, self._key)
 
         keys = metadata[self._key] if type(metadata[self._key]) is list else [metadata[self._key], ]
         trie = self.make_trie(keys)
@@ -70,11 +78,13 @@ class HashTableIndex(Index):
         self._buckets = buckets
 
     def get_bucket(self, value):
+        if type(value) is str:
+            value = value.encode()
         return zlib.crc32(value) % self._buckets
 
     def update_index(self, multihash, metadata, root_links):
-        root_link = root_links[self._key]
-        root_index = json.loads(self._api.cat(root_link))
+        root_link = find_index(root_links, self._key)
+        root_index = json.loads(self._api.cat(root_link)) if root_link is not None else dict()
 
         keys = metadata[self._key] if type(metadata[self._key]) is list else [metadata[self._key], ]
 
@@ -120,16 +130,15 @@ class MultiIndex(object):
     def update_index(self, multihash, metadata):
         root = self.api.object_get(self.root_holder.get())
 
+        old_links = root['Links']
         root['Links'] = []
         for key, index in self.indices.items():
             root['Links'].append(dict(
-                Hash=index.update_index(multihash, metadata, root['Links']),
+                Hash=index.update_index(multihash, metadata, old_links),
                 Name=key
             ))
 
-        root_multihash = self.api.object_put()
-        self.api.pin_add(root_multihash)
-        self.root_holder.post(root_multihash)
+        self.root_holder.post(root)
 
     def search(self, query):
         links = self.api.object_get(self.root_holder.get())['Links']
