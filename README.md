@@ -2,7 +2,7 @@
 
 We aim to create decentralized content delivery network in order to bypass scientific articles paywall.
 
-# Wy we are doing that in one picture
+# Why we are doing that in one picture
 
 ![Explain everything](phd-comic_s600x600.png)
 
