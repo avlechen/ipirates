@@ -17,7 +17,7 @@ class PaperClient(object):
         path = Path(filename)
         path.parent.mkdir(exist_ok=True, parents=True)
 
-        return self._api.cat(multihash, filepath='tmp.')
+        return self._api.get(multihash, filepath=filename)
 
     def add_file(self, metadata, file, is_tmp=False):
         result = self._api.add(file)
@@ -38,6 +38,7 @@ class PaperClient(object):
             Path(file).unlink()
 
     def find_file(self, query):
-        metadata = self.index.search(query)
-        metadata['ipfs-url'] = 'http://gateway.ipfs.io/ipfs/{}'.format(metadata['file_hash'])
-        return metadata
+        metadatas = self.index.search(query)
+        for metadata in metadatas:
+            metadata['ipfs-url'] = 'http://gateway.ipfs.io/ipfs/{}'.format(metadata['file_hash'])
+        return metadatas
