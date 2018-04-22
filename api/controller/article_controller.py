@@ -29,7 +29,8 @@ def add_article():
     file = request.files['file']
     if file:
         filename = secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
     metadata = request.form.get('metadata')
     print('metadata string: ' + metadata)
     metadata_dict = json.loads(metadata)
@@ -47,7 +48,7 @@ def add_article():
     if metadata_dict.get('keywords'):
         print('Keywords: ' + ", ".join(metadata_dict.get('keywords')))
 
-    res = paper_client.add_file(file=file, metadata=metadata)
+    res = paper_client.add_file(file=filepath, metadata=metadata_dict, is_tmp=True)
     print("Result: ")
     print(res)
 

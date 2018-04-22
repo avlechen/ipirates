@@ -73,6 +73,6 @@ def test_find_article():
 
 
 if __name__ == "__main__":
-    #run_wrapped_test(test_get_article_by_hash)
+    run_wrapped_test(test_get_article_by_hash)
     run_wrapped_test(test_add_article_file_with_metadata)
-    #run_wrapped_test(test_find_article)
+    run_wrapped_test(test_find_article)
