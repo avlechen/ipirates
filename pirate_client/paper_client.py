@@ -29,6 +29,7 @@ class PaperClient(object):
             return
 
         metadata['file_hash'] = result['Hash']
+        metadata['ipfs-url'] = 'http://gateway.ipfs.io/ipfs/{}'.format(metadata['file_hash'])
         meta_hash = self._api.add_json(metadata)
         # add magnet link?
 

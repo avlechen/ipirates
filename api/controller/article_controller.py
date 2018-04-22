@@ -17,16 +17,18 @@ paper_client = PaperClient(api, index)
 
 @app.route("/article/<string:article_hash>", methods=['GET'])
 def get_article(article_hash):
-    ipfs_prefix = 'https://ipfs.io/ipfs/'
-    # TODO: add validation (check article exists) or even return the article itself
+    #ipfs_prefix = 'https://ipfs.io/ipfs/'
+    res = paper_client.get_file(article_hash)
+    print('get_file result: ' + str(res))
     return jsonify(
         {"message": "Here's your article",
-         "link": "{}{}".format(ipfs_prefix, article_hash)})
+         "article": res})
 
 
 @app.route("/article", methods=['POST'])
 def add_article():
     file = request.files['file']
+    filepath=""
     if file:
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -52,7 +54,10 @@ def add_article():
     print("Result: ")
     print(res)
 
-    return jsonify({"message": "Article inserted! (no)", "metadata": res})
+    return jsonify({
+        "message": "Article inserted!",
+        "article": res
+    })
 
 
 # TODO: add search criteria/metadata model
@@ -79,7 +84,10 @@ def find_articles():
     print("Result: ")
     print(res)
 
-    return jsonify({"message": "Here's what we found for your request"})
+    return jsonify({
+        "message": "Here's what we found for your request",
+        "articles": res
+    })
 
 
 @app.errorhandler(400)
