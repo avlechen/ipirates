@@ -2,13 +2,14 @@ import ipfsapi
 from pathlib import Path
 
 from .multi_index import MultiIndex
+from .root_holder import RootHolder
 
 
 class PaperClient(object):
     def __init__(self, api=None, index=None):
         self.api = api or ipfsapi.connect('127.0.0.1', 5001)
 
-        self.index = index or MultiIndex(api)
+        self.index = index or MultiIndex(api, DebugRootHolder)
 
     def get_file(self, multihash, filename=None):
         filename = filename or 'tmp/tmp{}'.format(multihash)
