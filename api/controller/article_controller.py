@@ -17,19 +17,21 @@ paper_client = PaperClient(api, index)
 
 @app.route("/article/<string:article_hash>", methods=['GET'])
 def get_article(article_hash):
-    #ipfs_prefix = 'https://ipfs.io/ipfs/'
-    res = paper_client.get_file(article_hash)
+    ipfs_prefix = 'https://ipfs.io/ipfs/'
+    #res = paper_client.get_file(article_hash)
+    res = ipfs_prefix + article_hash
     print('get_file result: ' + str(res))
     return jsonify(
         {"message": "Here's your article",
-         "article": res})
+         "link": res})
 
 
 @app.route("/article", methods=['POST'])
 def add_article():
     file = request.files['file']
-    filepath=""
+    #filepath=""
     if file:
+        print("+++  FILE SENT  ++")
         filename = secure_filename(file.filename)
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)
