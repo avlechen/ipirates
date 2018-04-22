@@ -2,7 +2,6 @@ certifi==2018.4.16
 chardet==3.0.4
 idna==2.6
 ipfsapi==0.4.2.post1
-marisa-trie==0.7.5
 requests==2.18.4
 six==1.11.0
 urllib3==1.22
