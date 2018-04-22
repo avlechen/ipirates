@@ -40,7 +40,7 @@ def test_add_article_file_with_metadata():
                 "doi": "10.1000/xyz123",
                 "title": "Structured computer organization",
                 "authors": ["Andrew S. Tanenbaum", "Todd Austin"],
-                "tags": ["hardware", "bible", "bsuir"]
+                "keywords": ["hardware", "bible", "bsuir"]
             }).replace("'", "\""),
             'file': (test_file_name, open(test_file_path, 'rb'))}
     )  # it's possible to add 'text/plain'

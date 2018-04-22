@@ -3,7 +3,10 @@ import os
 from flask import Flask, request, json, jsonify, url_for
 from werkzeug.utils import secure_filename
 
+from pirate_client.paper_client import PaperClient
+
 app = Flask(__name__)
+paper_client = PaperClient()
 
 
 @app.route("/article/<string:article_hash>", methods=['GET'])
@@ -35,8 +38,8 @@ def add_article():
     if metadata_dict.get('authors'):
         print('Authors: ' + ", ".join(metadata_dict.get('authors')))
 
-    if metadata_dict.get('tags'):
-        print('Tags: ' + ", ".join(metadata_dict.get('tags')))
+    if metadata_dict.get('keywords'):
+        print('Keywords: ' + ", ".join(metadata_dict.get('keywords')))
 
     return jsonify({"message": "Article inserted! (no)"})
 
