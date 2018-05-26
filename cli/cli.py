@@ -1,9 +1,9 @@
 import click
-import os
 import sys
 import json
 import requests
 from requests_toolbelt import MultipartEncoder
+from pathlib import Path
 
 from colorama import init
 from termcolor import cprint 
@@ -19,6 +19,8 @@ if (len(sys.argv) == 1 or sys.argv[1] == '--help'):
 def cli():
     """get expensive academic articles for free"""
     pass
+
+local_path = Path(__file__).parent
 
 @click.command()
 @click.option('--authors', type=str, help='authors name list as CSV string')
@@ -40,11 +42,11 @@ def add(filename, authors, title, keywords, doi, local):
             data['keywords'] = keywords.split(',')
             data['title'] = title
             data['doi'] = doi
-            filepath = os.path.join(os.path.dirname(os.path.abspath(__file__)), filename)
+            filepath = local_path.joinpath(filename)
             body = MultipartEncoder(
                 fields={
                     'metadata': str(data).replace("'", "\""),
-                    'file': (os.path.basename(filename), open(filepath, 'rb'))
+                    'file': (filepath.stem, filepath.open(mode='rb'))
                 }
             )
             res = requests.post('http://0.0.0.0:5000/article', data=body, headers={'Content-Type': body.content_type})
