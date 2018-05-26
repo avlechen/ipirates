@@ -12,7 +12,8 @@ import time
 platform_url = 'steemit.com'
 url_tag = 'ipfs'
 profile_name = 'magnustest'
-post_link = 'hackathon-ipfs-hashes'
+post_link = 'sci-lib-hashes'
+post_url = 'https://{}/{}/@{}/{}'.format(platform_url, url_tag, profile_name, post_link)
 
 # account keys
 prv_posting_key = '5KXSnDWzHzgopzpYuNBecTMdvrwzBTZNDi5xY24CLUsdzfQj8L4'
@@ -43,11 +44,11 @@ def get_post_comments(post_link):
 
 # Post new hash data into the blockchain replies
 def send_new_hash_comment(new_hash, prev_hash=None):
-    post_url = 'https://{}/{}/@{}/{}'.format(platform_url, url_tag, profile_name, post_link)
     p = steem.post.Post(post_url)
 
     body = body_string(new_hash, prev_hash)
-    p.reply(body, author=profile_name)
+    r = p.reply(body, author=profile_name)
+    pass
 
 
 # Return body string with hashes data
