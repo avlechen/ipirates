@@ -1,4 +1,4 @@
-#from steemit.steemit import get_last_hash_comment, send_new_hash_comment
+from steemit.steemit import get_last_hash_comment, send_new_hash_comment
 
 import json
 from io import BytesIO
@@ -35,9 +35,10 @@ class SteemitRootHolder(RootHolder):
         super().__init__(api)
 
     def get(self):
-        #self.root_hash = get_last_hash_comment()
+        self.root_hash = get_last_hash_comment()
         if self.root_hash is None:
             self.root_hash = self.create_empty()
+            send_new_hash_comment(self.root_hash)
         else:
             self.api.pin_add(self.root_hash)
 
@@ -45,7 +46,7 @@ class SteemitRootHolder(RootHolder):
 
     def post(self, root):
         new_hash = self.update_root(root)
-        #send_new_hash_comment(new_hash, prev_hash=self.root_hash)
+        send_new_hash_comment(new_hash, prev_hash=self.root_hash)
         self.root_hash = new_hash
 
 

@@ -141,7 +141,7 @@ class MultiIndex(object):
         self.root_holder = root_holder
         self.api = api
         self.indices = dict(
-            author=HashTableIndex('author', api, buckets=10000),
+            authors=HashTableIndex('authors', api, buckets=10000),
             doi=HashTableIndex('doi', api),
             keywords=Trie('keywords', api),
         )
@@ -167,7 +167,7 @@ class MultiIndex(object):
         links = root_object['Links']
 
         metadata_collection = []
-        for key in ['doi', 'author', 'keywords']:
+        for key in self.indices:
             if key in query:
                 ret = self.indices[key].search(query, links)
                 if type(ret) is list:
@@ -176,9 +176,8 @@ class MultiIndex(object):
                     metadata_collection.append(ret)
 
                 del query[key]
-                return list(filter(lambda it: self.satisfies(it, query), metadata_collection))
 
-        return None
+        return list(filter(lambda it: self.satisfies(it, query), metadata_collection))
 
     @staticmethod
     def satisfies(item, query):
