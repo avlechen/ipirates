@@ -1,6 +1,6 @@
 import os, sys
 
-from api.controller.article_controller import app
+from server.controller.article_controller import app
 
 if __name__ == "__main__":
     # configure folder for uploaded article files
