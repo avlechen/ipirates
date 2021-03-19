@@ -11,7 +11,7 @@ futures==3.1.1
 idna==2.6
 ipfsapi==0.4.2.post1
 itsdangerous==0.24
-Jinja2==2.10
+Jinja2==2.11.3
 langdetect==1.0.7
 marisa-trie==0.7.5
 MarkupSafe==1.0
